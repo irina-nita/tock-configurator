@@ -6,8 +6,10 @@ use crate::menu::capsule_popup;
 use crate::state::Data;
 use parse::peripherals::{Chip, DefaultPeripherals};
 
+const PERIPHERAL: &str = "TIMER";
+
 /// Menu for configuring the timer capsule.
-pub fn config<C: Chip + 'static + serde::Serialize, P: DefaultPeripherals>(
+pub fn config<C: Chip + 'static + serde::Serialize>(
     chip: Rc<C>,
     previous_state: Option<
         Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::Timer>,
@@ -24,7 +26,7 @@ pub fn config<C: Chip + 'static + serde::Serialize, P: DefaultPeripherals>(
                     inner,
                 ))
             }
-            Err(_) => capsule_popup::<C, _>(crate::menu::no_support("TIMER")),
+            Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
         },
     }
 }
@@ -38,7 +40,7 @@ fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
             Vec::from(timer_peripherals),
             on_timer_submit::<C>,
         )),
-        Err(_) => capsule_popup::<C, _>(crate::menu::no_support("TIMER")),
+        Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
     }
 }
 

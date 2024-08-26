@@ -6,13 +6,18 @@ use crate::menu::capsule_popup;
 use crate::state::Data;
 use parse::peripherals::{Chip, DefaultPeripherals};
 
+const BLE_PERIPHERAL: &str = "BLE";
+const TIMER_PERIPHERAL: &str = "TIMER";
+
+type BleRadioPeripherals<C> = (
+        Rc<<<C as Chip>::Peripherals as DefaultPeripherals>::Timer>,
+        Rc<<<C as Chip>::Peripherals as DefaultPeripherals>::BleAdvertisement>,
+);
+
 /// Menu for configuring the ble radio capsule.
 pub fn config<C: Chip + 'static + serde::Serialize>(
     chip: Rc<C>,
-    choice: Option<(
-        Rc<<C::Peripherals as DefaultPeripherals>::Timer>,
-        Rc<<C::Peripherals as DefaultPeripherals>::BleAdvertisement>,
-    )>,
+    choice: Option<BleRadioPeripherals<C>>,
 ) -> cursive::views::LinearLayout {
     match choice {
         None => config_unknown(chip),
@@ -28,7 +33,7 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
                         inner_ble,
                     ))
                 }
-                Err(_) => capsule_popup::<C, _>(crate::menu::no_support("BLE")),
+                Err(_) => capsule_popup::<C, _>(crate::menu::no_support(BLE_PERIPHERAL)),
             }
         }
     }
@@ -42,7 +47,7 @@ fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
             Vec::from(ble_peripherals),
             move |siv, submit| on_ble_submit::<C>(chip.clone(), siv, submit, None),
         )),
-        Err(_) => capsule_popup::<C, _>(crate::menu::no_support("BLE")),
+        Err(_) => capsule_popup::<C, _>(crate::menu::no_support(BLE_PERIPHERAL)),
     }
 }
 
@@ -85,7 +90,7 @@ fn timer_popup<C: Chip + 'static + serde::ser::Serialize>(
                         inner,
                     ))
                 }
-                Err(_) => capsule_popup::<C, _>(crate::menu::no_support("TIMER")),
+                Err(_) => capsule_popup::<C, _>(crate::menu::no_support(TIMER_PERIPHERAL)),
             }
         }
         None => match chip.peripherals().timer() {
@@ -93,7 +98,7 @@ fn timer_popup<C: Chip + 'static + serde::ser::Serialize>(
                 Vec::from(timer_peripherals),
                 move |siv, submit_timer| on_timer_submit::<C>(siv, submit_timer, submit.clone()),
             )),
-            Err(_) => capsule_popup::<C, _>(crate::menu::no_support("TIMER")),
+            Err(_) => capsule_popup::<C, _>(crate::menu::no_support(TIMER_PERIPHERAL)),
         },
     }
 }

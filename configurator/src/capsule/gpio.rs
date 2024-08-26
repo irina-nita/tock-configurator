@@ -10,6 +10,8 @@ use std::rc::Rc;
 
 use super::ConfigMenu;
 
+const PERIPHERAL: &str = "GPIO";
+
 #[derive(Debug)]
 pub(crate) struct GpioConfig;
 
@@ -27,7 +29,7 @@ impl ConfigMenu for GpioConfig {
                     .collect(),
                 |siv, submit| on_gpio_capsule_submit::<C>(siv, Rc::clone(submit)),
             )),
-            Err(_) => capsule_popup::<C, _>(no_support("GPIO")),
+            Err(_) => capsule_popup::<C, _>(no_support(PERIPHERAL)),
         }
     }
 }
@@ -108,8 +110,6 @@ fn on_gpio_pin_submit<C: Chip + 'static + serde::Serialize>(
         selected_pins.iter().for_each(|pin| {
             data.change_pin_status(gpio.clone(), *pin, PinFunction::Gpio);
         });
-
-        //panic!("{:?}", selected_pins);
 
         if selected_pins.is_empty() {
             data.platform.remove_gpio();

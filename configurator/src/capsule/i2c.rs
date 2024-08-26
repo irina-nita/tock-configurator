@@ -6,6 +6,8 @@ use crate::menu::capsule_popup;
 use crate::state::Data;
 use parse::peripherals::{Chip, DefaultPeripherals};
 
+const PERIPHERAL: &str = "I2C";
+
 /// Menu for configuring the I2C capsule.
 pub fn config<C: Chip + 'static + serde::Serialize>(
     chip: Rc<C>,
@@ -21,7 +23,7 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
                     inner,
                 ))
             }
-            Err(_) => capsule_popup::<C, _>(crate::menu::no_support("I2C")),
+            Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
         },
     }
 }
@@ -34,7 +36,7 @@ fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
             Vec::from(i2c_peripherals),
             on_i2c_submit::<C>,
         )),
-        Err(_) => capsule_popup::<C, _>(crate::menu::no_support("I2C")),
+        Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
     }
 }
 

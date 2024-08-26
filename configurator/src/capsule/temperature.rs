@@ -6,6 +6,8 @@ use crate::menu::capsule_popup;
 use crate::state::Data;
 use parse::peripherals::{Chip, DefaultPeripherals};
 
+const PERIPHERAL: &str = "TEMPERATURE";
+
 /// Menu for configuring the Temperature capsule.
 pub fn config<C: Chip + 'static + serde::Serialize>(
     chip: Rc<C>,
@@ -23,7 +25,7 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
                     inner,
                 ))
             }
-            Err(_) => capsule_popup::<C, _>(crate::menu::no_support("TEMPERATURE")),
+            Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
         },
     }
 }
@@ -36,7 +38,7 @@ fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
             Vec::from(temp_peripherals),
             on_temp_submit::<C>,
         )),
-        Err(_) => capsule_popup::<C, _>(crate::menu::no_support("TEMPERATURE")),
+        Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
     }
 }
 

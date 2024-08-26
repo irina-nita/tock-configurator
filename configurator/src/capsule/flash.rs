@@ -7,10 +7,11 @@ use crate::state::Data;
 use cursive::view::Nameable;
 use cursive::views::{Dialog, EditView};
 use parse::peripherals::{Chip, DefaultPeripherals};
-// use parse::virtual_app_flash::VirtualAppFlash;
+
+const PERIPHERAL: &str = "FLASH";
 
 /// Menu for configuring the App Flash capsule.
-pub fn config<C: Chip + 'static + serde::Serialize, P: DefaultPeripherals>(
+pub fn config<C: Chip + 'static + serde::Serialize>(
     choice: Option<(
         Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::Flash>,
         usize,
@@ -25,7 +26,7 @@ pub fn config<C: Chip + 'static + serde::Serialize, P: DefaultPeripherals>(
                 move |siv, choice| on_flash_submit::<C>(siv, choice, inner.1),
                 inner.0,
             )),
-            Err(_) => capsule_popup::<C, _>(crate::menu::no_support("FLASH")),
+            Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
         },
     }
 }
@@ -39,7 +40,7 @@ fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
                 on_flash_submit::<C>(siv, submit, 512)
             }),
         ),
-        Err(_) => crate::menu::capsule_popup::<C, _>(crate::menu::no_support("FLASH")),
+        Err(_) => crate::menu::capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
     }
 }
 

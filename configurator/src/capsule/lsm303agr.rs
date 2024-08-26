@@ -7,6 +7,8 @@ use crate::state::Data;
 use crate::{menu::capsule_popup, views};
 use parse::peripherals::{Chip, DefaultPeripherals};
 
+const PERIPHERAL: &str = "I2C";
+
 /// Menu for configuring the Lsm303agr capsule.
 pub fn config<C: Chip + 'static + serde::Serialize>(
     chip: Rc<C>,
@@ -24,7 +26,7 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
                     inner,
                 ))
             }
-            Err(_) => capsule_popup::<C, _>(crate::menu::no_support("I2C")),
+            Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
         },
     }
 }
@@ -38,7 +40,7 @@ fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
                 on_bus_submit::<C>(siv, submit)
             }),
         ),
-        Err(_) => crate::menu::capsule_popup::<C, _>(crate::menu::no_support("I2C")),
+        Err(_) => crate::menu::capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
     }
 }
 

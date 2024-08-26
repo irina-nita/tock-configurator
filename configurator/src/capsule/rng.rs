@@ -6,6 +6,8 @@ use crate::menu::capsule_popup;
 use crate::state::Data;
 use parse::peripherals::{Chip, DefaultPeripherals};
 
+const PERIPHERAL: &str = "RNG";
+
 /// Menu for configuring the Rng capsule.
 pub fn config<C: Chip + 'static + serde::Serialize>(
     chip: Rc<C>,
@@ -21,7 +23,7 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
                     inner,
                 ))
             }
-            Err(_) => capsule_popup::<C, _>(crate::menu::no_support("RNG")),
+            Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
         },
     }
 }
@@ -35,7 +37,7 @@ fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
             Vec::from(rng_peripherals),
             on_rng_submit::<C>,
         )),
-        Err(_) => capsule_popup::<C, _>(crate::menu::no_support("RNG")),
+        Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
     }
 }
 

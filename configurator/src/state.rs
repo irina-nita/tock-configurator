@@ -262,7 +262,7 @@ pub(crate) fn on_capsule_submit<C: Chip + 'static + serde::ser::Serialize>(
 
             push_layer::<_, C>(
                 siv,
-                crate::capsule::alarm::config::<C, <C as Chip>::Peripherals>(chip, choice),
+                crate::capsule::alarm::config::<C>(chip, choice),
             )
         }
         config::Index::SPI => {
@@ -301,7 +301,7 @@ pub(crate) fn on_capsule_submit<C: Chip + 'static + serde::ser::Serialize>(
 
             push_layer::<_, C>(
                 siv,
-                crate::capsule::flash::config::<C, <C as Chip>::Peripherals>(choice, chip),
+                crate::capsule::flash::config::<C>(choice, chip),
             )
         }
         config::Index::LSM303AGR => {
@@ -419,8 +419,8 @@ pub(crate) fn on_count_submit_stack<C: Chip + 'static + serde::Serialize>(
             unsafe {
                 data.platform.stack_size = NonZeroUsize::new_unchecked(0x900_usize);
             }
-        } else if name.starts_with("0x") {
-            if let Ok(count) = usize::from_str_radix(&name[2..], 16) {
+        } else if let Some(number) = name.strip_prefix("0x") {
+            if let Ok(count) = usize::from_str_radix(number, 16) {
                 data.platform.update_stack_size(count);
             }
         } else if let Ok(count) = name.parse::<usize>() {

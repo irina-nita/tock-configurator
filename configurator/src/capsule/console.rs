@@ -8,8 +8,9 @@ use cursive::views::{Dialog, EditView, LinearLayout};
 use parse::peripherals::DefaultPeripherals;
 use std::rc::Rc;
 
+const PERIPHERAL: &str = "UART";
+
 /// Menu for configuring the Console capsule.
-///  TODO: rust-analyzer suggests to remove `P`.
 pub fn config<C: Chip + 'static + serde::Serialize>(
     chip: Rc<C>,
     previous_state: Option<(
@@ -28,7 +29,7 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
                     inner.0,
                 ))
             }
-            Err(_) => capsule_popup::<C, _>(crate::menu::no_support("UART")),
+            Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
         },
     }
 }
@@ -41,7 +42,7 @@ fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(chip: Rc<C>) -> Lin
                 on_uart_submit::<C>(siv, submit, 112500)
             }),
         ),
-        Err(_) => crate::menu::capsule_popup::<C, _>(crate::menu::no_support("UART")),
+        Err(_) => crate::menu::capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
     }
 }
 
