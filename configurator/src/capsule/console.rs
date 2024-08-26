@@ -19,9 +19,10 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
     )>,
 ) -> cursive::views::LinearLayout {
     match previous_state {
-        None => config_unknown(chip),
+        // If there isn't a Console already configured, we switch to another menu.
+        None => config_none(chip),
         Some(inner) => match chip.peripherals().uart() {
-            //  TODO: doc both arms.
+            // If we have at least one UART peripheral, we make a list with it.
             Ok(uart_peripherals) => {
                 capsule_popup::<C, _>(crate::views::radio_group_with_null_known(
                     Vec::from(uart_peripherals),
@@ -29,13 +30,15 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
                     inner.0,
                 ))
             }
+            // If we don't have any UART peripheral, we show a popup 
+            // with an error describing this.
             Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
         },
     }
 }
 
-//  TODO: Rename and doc.
-fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(chip: Rc<C>) -> LinearLayout {
+/// Menu for configuring the Console capsule when none was configured before.
+fn config_none<C: Chip + 'static + serde::ser::Serialize>(chip: Rc<C>) -> LinearLayout {
     match chip.peripherals().uart() {
         Ok(uart_peripherals) => crate::menu::capsule_popup::<C, _>(
             crate::views::radio_group_with_null(Vec::from(uart_peripherals), |siv, submit| {

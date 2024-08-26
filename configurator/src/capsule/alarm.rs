@@ -8,7 +8,7 @@ use parse::peripherals::{Chip, DefaultPeripherals};
 
 const PERIPHERAL: &str = "TIMER";
 
-/// Menu for configuring the timer capsule.
+/// Menu for configuring the Alarm capsule.
 pub fn config<C: Chip + 'static + serde::Serialize>(
     chip: Rc<C>,
     previous_state: Option<
@@ -16,9 +16,10 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
     >,
 ) -> cursive::views::LinearLayout {
     match previous_state {
-        None => config_unknown(chip),
+        // If there isn't an Alarm already configured, we switch to another menu.
+        None => config_none(chip),
         Some(inner) => match chip.peripherals().timer() {
-            //  TODO: doc both arms.
+            // If we have at least one timer peripheral, we make a list with it.
             Ok(timer_peripherals) => {
                 capsule_popup::<C, _>(crate::views::radio_group_with_null_known(
                     Vec::from(timer_peripherals),
@@ -26,13 +27,15 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
                     inner,
                 ))
             }
+            // If we don't have any timer peripheral, we show a popup 
+            // with an error describing this.
             Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
         },
     }
 }
 
-//  TODO: Rename and doc.
-fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
+/// Menu for configuring the Alarm capsule when none was configured before.
+fn config_none<C: Chip + 'static + serde::ser::Serialize>(
     chip: Rc<C>,
 ) -> cursive::views::LinearLayout {
     match chip.peripherals().timer() {
@@ -44,7 +47,7 @@ fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
     }
 }
 
-/// Configure an alarm based on the submitted timer.
+/// Configure an Alarm capsule based on the submitted Timer peripheral.
 fn on_timer_submit<C: Chip + 'static + serde::ser::Serialize>(
     siv: &mut cursive::Cursive,
     submit: &Option<Rc<<C::Peripherals as DefaultPeripherals>::Timer>>,
