@@ -52,7 +52,7 @@ fn on_i2c_submit<C: Chip + 'static + serde::ser::Serialize>(
 ) {
     if let Some(data) = siv.user_data::<Data<C>>() {
         if let Some(i2c) = submit {
-            data.platform.update_i2c(i2c.clone());
+            data.platform.update_i2c(Rc::clone(i2c));
         } else {
             data.platform.remove_i2c();
         }

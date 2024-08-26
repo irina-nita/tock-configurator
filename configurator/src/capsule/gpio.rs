@@ -60,7 +60,7 @@ fn gpio_pins_popup<C: Chip + 'static + serde::ser::Serialize>(
     checkbox_popup::<_, _, _>(
         view,
         move |siv| on_gpio_pin_submit::<C>(siv, false, Rc::clone(&gpio)),
-        move |siv| on_gpio_pin_submit::<C>(siv, true, gpio_clone.clone()),
+        move |siv| on_gpio_pin_submit::<C>(siv, true, Rc::clone(&gpio_clone)),
     )
 }
 
@@ -110,13 +110,13 @@ fn on_gpio_pin_submit<C: Chip + 'static + serde::Serialize>(
         // For each previously selected pin that got unselected,
         // update its status in the internal configurator data.
         unselected_pins.iter().for_each(|pin| {
-            data.change_pin_status(gpio.clone(), *pin, PinFunction::None);
+            data.change_pin_status(Rc::clone(&gpio), *pin, PinFunction::None);
         });
 
         // For each selected pin, update its status in the internal
         // configurator data.
         selected_pins.iter().for_each(|pin| {
-            data.change_pin_status(gpio.clone(), *pin, PinFunction::Gpio);
+            data.change_pin_status(Rc::clone(&gpio), *pin, PinFunction::Gpio);
         });
 
         if selected_pins.is_empty() {

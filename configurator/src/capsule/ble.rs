@@ -30,7 +30,7 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
                     capsule_popup::<C, _>(crate::views::radio_group_with_null_known(
                         Vec::from(ble_peripherals),
                         move |siv, submit| {
-                            on_ble_submit::<C>(chip.clone(), siv, submit, Some(inner.0.clone()))
+                            on_ble_submit::<C>(Rc::clone(&chip), siv, submit, Some(Rc::clone(&inner.0)))
                         },
                         inner_ble,
                     ))
@@ -50,7 +50,7 @@ fn config_none<C: Chip + 'static + serde::ser::Serialize>(
     match chip.peripherals().ble() {
         Ok(ble_peripherals) => capsule_popup::<C, _>(crate::views::radio_group_with_null(
             Vec::from(ble_peripherals),
-            move |siv, submit| on_ble_submit::<C>(chip.clone(), siv, submit, None),
+            move |siv, submit| on_ble_submit::<C>(Rc::clone(&chip), siv, submit, None),
         )),
         Err(_) => capsule_popup::<C, _>(crate::menu::no_support(BLE_PERIPHERAL)),
     }
@@ -68,7 +68,7 @@ fn on_ble_submit<C: Chip + 'static + serde::ser::Serialize>(
     siv.pop_layer();
     if let Some(data) = siv.user_data::<Data<C>>() {
         if let Some(ble) = submit {
-            siv.add_layer(timer_popup::<C>(chip, ble.clone(), previous_timer))
+            siv.add_layer(timer_popup::<C>(chip, Rc::clone(ble), previous_timer))
         } else {
             data.platform.remove_ble();
         }
@@ -93,7 +93,7 @@ fn timer_popup<C: Chip + 'static + serde::ser::Serialize>(
                     capsule_popup::<C, _>(crate::views::radio_group_with_null_known(
                         Vec::from(timer_peripherals),
                         move |siv, submit_timer| {
-                            on_timer_submit::<C>(siv, submit_timer, submit.clone())
+                            on_timer_submit::<C>(siv, submit_timer, Rc::clone(&submit))
                         },
                         inner,
                     ))
@@ -107,7 +107,7 @@ fn timer_popup<C: Chip + 'static + serde::ser::Serialize>(
             // If we have at least one timer peripheral, we make a list with it.
             Ok(timer_peripherals) => capsule_popup::<C, _>(crate::views::radio_group_with_null(
                 Vec::from(timer_peripherals),
-                move |siv, submit_timer| on_timer_submit::<C>(siv, submit_timer, submit.clone()),
+                move |siv, submit_timer| on_timer_submit::<C>(siv, submit_timer, Rc::clone(&submit)),
             )),
             // If we don't have any timer peripheral, we show a popup 
             // with an error describing this.
@@ -124,7 +124,7 @@ fn on_timer_submit<C: Chip + 'static + serde::ser::Serialize>(
 ) {
     if let Some(data) = siv.user_data::<Data<C>>() {
         if let Some(timer) = submit_timer {
-            data.platform.update_ble(submit_ble, timer.clone());
+            data.platform.update_ble(submit_ble, Rc::clone(&timer));
         } else {
             data.platform.remove_ble();
         }

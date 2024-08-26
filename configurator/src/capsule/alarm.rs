@@ -54,7 +54,7 @@ fn on_timer_submit<C: Chip + 'static + serde::ser::Serialize>(
 ) {
     if let Some(data) = siv.user_data::<Data<C>>() {
         match submit {
-            Some(timer) => data.platform.update_alarm(timer.clone()),
+            Some(timer) => data.platform.update_alarm(Rc::clone(timer)),
             None => data.platform.remove_alarm(),
         }
     }

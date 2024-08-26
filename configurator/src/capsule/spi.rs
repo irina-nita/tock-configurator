@@ -52,7 +52,7 @@ fn on_spi_submit<C: Chip + 'static + serde::ser::Serialize>(
 ) {
     if let Some(data) = siv.user_data::<Data<C>>() {
         if let Some(spi) = submit {
-            data.platform.update_spi(spi.clone());
+            data.platform.update_spi(Rc::clone(spi));
         } else {
             data.platform.remove_spi();
         }
