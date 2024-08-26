@@ -23,7 +23,7 @@ where
     select_view.with_inactive_highlight(false)
 }
 
-/// Create a list of checkboxes.
+/// Create a list of radio buttons with the `None` option (checked).
 pub(crate) fn radio_group_with_null<T, F>(items: Vec<T>, on_change: F) -> LinearLayout
 where
     T: 'static + std::fmt::Display,
@@ -44,6 +44,8 @@ where
     list
 }
 
+/// Create a list of radio buttons with the `None` option.
+/// This variant has one of the other options checked.
 pub(crate) fn radio_group_with_null_known<T, F, U>(
     items: Vec<T>,
     on_change: F,
@@ -75,7 +77,8 @@ where
     list
 }
 
-/// Create a list of checkboxes.
+/// Create a list of radio buttons.
+/// This variant has one of the other options checked.
 pub(crate) fn radio_group_with_known<T, F, I, U>(items: I, on_change: F, known: U) -> LinearLayout
 where
     T: 'static + std::fmt::Display,

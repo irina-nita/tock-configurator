@@ -112,7 +112,8 @@ impl<C: Chip> Data<C> {
         }
     }
 
-    //  TODO: Doc this.
+    /// Change the pin status that is stored inside the configurator 
+    /// inner state.
     pub fn change_pin_status(
         &mut self,
         gpio: Rc<<<C as Chip>::Peripherals as DefaultPeripherals>::Gpio>,
@@ -135,6 +136,7 @@ impl<C: Chip> Data<C> {
     }
 }
 
+/// Push a layer to the view stack.
 pub(crate) fn push_layer<
     V: cursive::view::IntoBoxedView + 'static,
     C: Chip + 'static + serde::ser::Serialize,
@@ -336,8 +338,6 @@ pub(crate) fn on_capsule_submit<C: Chip + 'static + serde::ser::Serialize>(
     }
 }
 
-// *********************************** GPIO *****************************************
-
 /// Give the next prompt from the GPIO capsule.
 #[allow(unused)]
 pub(crate) fn on_gpio_submit<
@@ -369,7 +369,7 @@ pub(crate) fn on_exit_submit<C: Chip + 'static + serde::ser::Serialize>(
     }
 }
 
-/// Exit the current window and go back to the previous one.
+/// Exit the current window and go to the "save to JSON" menu.
 pub(crate) fn on_quit_submit<C: Chip + 'static + serde::ser::Serialize>(
     siv: &mut cursive::Cursive,
 ) {
@@ -377,7 +377,7 @@ pub(crate) fn on_quit_submit<C: Chip + 'static + serde::ser::Serialize>(
     siv.add_layer(menu::save_dialog::<C>())
 }
 
-/// Exit the current window and go back to the previous one.
+/// Write to the JSON file and quit the configurator.
 pub(crate) fn on_name_submit<C: Chip + 'static + serde::Serialize>(
     siv: &mut cursive::Cursive,
     name: &str,

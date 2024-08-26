@@ -19,8 +19,6 @@ use parse::syscall_filter::SyscallFilterType;
 
 use state::PinFunction;
 
-// **************************************** CHIP ****************************************
-
 /// Select menu of supported chips.
 pub(crate) fn chip_select() -> cursive::views::SelectView<items::SupportedChip> {
     views::select_menu::<items::SupportedChip, (), String, _>(
@@ -30,8 +28,6 @@ pub(crate) fn chip_select() -> cursive::views::SelectView<items::SupportedChip> 
         crate::state::on_chip_submit,
     )
 }
-
-// ************************************** CAPSULES **************************************
 
 /// Menu for configuring the **capsules** the board will implement.
 pub(crate) fn capsules_menu<C: Chip + 'static + serde::ser::Serialize>(
@@ -59,6 +55,7 @@ pub(crate) fn capsules_menu<C: Chip + 'static + serde::ser::Serialize>(
     .full_width()
 }
 
+/// Menu for configuring a capsule.
 pub(crate) fn capsule_popup<
     C: Chip + 'static + serde::ser::Serialize,
     V: cursive::view::IntoBoxedView + 'static,
@@ -74,6 +71,7 @@ pub(crate) fn capsule_popup<
     )
 }
 
+/// A popup with a checkbox.
 pub fn checkbox_popup<
     V: cursive::view::IntoBoxedView + 'static,
     F: 'static + Fn(&mut cursive::Cursive),
@@ -93,6 +91,7 @@ pub fn checkbox_popup<
     )
 }
 
+/// Popup in case of a peripheral not being supported.
 pub(crate) fn no_support(peripheral: &'static str) -> cursive::views::TextView {
     TextView::new(format!(
         "The chip does not have support for the {} peripheral.",
@@ -100,6 +99,7 @@ pub(crate) fn no_support(peripheral: &'static str) -> cursive::views::TextView {
     ))
 }
 
+/// Popup in case of a dependency capsule not being configured.
 #[allow(unused)]
 pub(crate) fn capsule_not_configured(capsule: &'static str) -> cursive::views::TextView {
     TextView::new(format!(
@@ -107,8 +107,6 @@ pub(crate) fn capsule_not_configured(capsule: &'static str) -> cursive::views::T
         capsule,
     ))
 }
-
-// ******************************* GPIO **************************************
 
 /// A checkbox list that has disabled entries if they can't be used.
 pub(crate) fn pin_list_disabled<C: Chip>(
@@ -135,6 +133,7 @@ pub(crate) fn pin_list_disabled<C: Chip>(
     ScrollView::new(LinearLayout::vertical().child(list.with_name(name)))
 }
 
+/// Menu for configuring the **kernel resources** the board will use.
 pub(crate) fn kernel_resources_menu<C: Chip + 'static + serde::ser::Serialize>(
 ) -> cursive::views::ResizedView<cursive::views::LinearLayout> {
     // List of capsules that could be configured for our board.
@@ -151,8 +150,6 @@ pub(crate) fn kernel_resources_menu<C: Chip + 'static + serde::ser::Serialize>(
     .full_width()
 }
 
-// ************************************** SCHEDULER *************************************
-
 /// Scheduler configuration menu.
 pub(crate) fn scheduler_menu<C: Chip + 'static + serde::ser::Serialize>(
     current_scheduler: SchedulerType,
@@ -166,9 +163,7 @@ pub(crate) fn scheduler_menu<C: Chip + 'static + serde::ser::Serialize>(
     .full_width()
 }
 
-// ********************************* SYSCALL FILTER *************************************
-
-/// Scheduler configuration menu.
+/// Syscall filter configuration menu.
 pub(crate) fn syscall_filter_menu<C: Chip + 'static + serde::ser::Serialize>(
     current_filter: SyscallFilterType,
 ) -> cursive::views::ResizedView<cursive::views::LinearLayout> {
@@ -184,8 +179,7 @@ pub(crate) fn syscall_filter_menu<C: Chip + 'static + serde::ser::Serialize>(
     .full_width()
 }
 
-// ************************************** PROCESSES *************************************
-
+/// Process count configuration menu.
 pub(crate) fn processes_menu<C: Chip + 'static + serde::ser::Serialize>(
     proc_count: usize,
 ) -> cursive::views::Dialog {
@@ -204,8 +198,7 @@ pub(crate) fn processes_menu<C: Chip + 'static + serde::ser::Serialize>(
     })
 }
 
-// ************************************** STACK MEMORY SIZE *****************************
-
+/// Stack memory size configuration menu.
 pub(crate) fn stack_menu<C: Chip + 'static + serde::ser::Serialize>(
     current_stack_size: usize,
 ) -> cursive::views::Dialog {
@@ -223,8 +216,6 @@ pub(crate) fn stack_menu<C: Chip + 'static + serde::ser::Serialize>(
         on_count_submit_stack::<C>(siv, &count);
     })
 }
-
-// ************************************** STATUS BAR ************************************
 
 /// Status bar at top.
 pub(crate) fn status_bar() -> LinearLayout {
@@ -247,8 +238,6 @@ pub(crate) fn status_bar() -> LinearLayout {
         )
 }
 
-// ************************************** STATUS BAR ************************************
-
 /// Board configuration menu.
 pub(crate) fn board_config_menu<C: Chip + 'static + serde::ser::Serialize>(
 ) -> cursive::views::ResizedView<cursive::views::LinearLayout> {
@@ -269,8 +258,6 @@ pub(crate) fn board_config_menu<C: Chip + 'static + serde::ser::Serialize>(
     )
     .full_width()
 }
-
-// ************************************** FIRST MENU ************************************
 
 /// Build the configurator by adding the layers defined in [`crate::menu::layers`]
 /// and initalizing [`crate::menu::builder::CONFIGURATION_BUILDER`].
@@ -301,6 +288,7 @@ pub fn init_configurator() -> cursive::CursiveRunnable {
     configurator
 }
 
+/// Menu used for saving the configuration to a JSON file.
 pub fn save_dialog<C: parse::peripherals::Chip + 'static + serde::ser::Serialize>(
 ) -> cursive::views::LinearLayout {
     let child_view = ListView::new().child(
