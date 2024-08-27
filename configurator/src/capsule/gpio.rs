@@ -10,16 +10,18 @@ use std::rc::Rc;
 
 use super::ConfigMenu;
 
+const PERIPHERAL: &str = "GPIO";
+
 #[derive(Debug)]
 pub(crate) struct GpioConfig;
 
 impl ConfigMenu for GpioConfig {
-    //  TODO: doc this.
+    /// Menu for configuring the GPIO capsule.
     fn config<C: Chip + 'static + serde::ser::Serialize>(
         chip: Rc<C>,
     ) -> cursive::views::LinearLayout {
         match chip.peripherals().gpio() {
-            //  TODO: Doc both arms.
+            // If we have at least one GPIO peripheral, we make a list with it.
             Ok(list) => capsule_popup::<C, _>(views::select_menu(
                 Vec::from(list)
                     .into_iter()
@@ -27,12 +29,28 @@ impl ConfigMenu for GpioConfig {
                     .collect(),
                 |siv, submit| on_gpio_capsule_submit::<C>(siv, Rc::clone(submit)),
             )),
-            Err(_) => capsule_popup::<C, _>(no_support("GPIO")),
+            // If we don't have any GPIO peripheral, we show a popup 
+            // with an error describing this.
+            Err(_) => capsule_popup::<C, _>(no_support(PERIPHERAL)),
         }
     }
 }
 
-//  TODO: doc this.
+/// Continue to the pin selection menu after choosing a GPIO peripheral.
+fn on_gpio_capsule_submit<C: Chip + 'static + serde::Serialize>(
+    siv: &mut cursive::Cursive,
+    submit: Rc<<<C as Chip>::Peripherals as DefaultPeripherals>::Gpio>,
+) {
+    siv.pop_layer();
+    if let Some(data) = siv.user_data::<Data<C>>() {
+        // This never panics because the GPIO will always exist.
+        let pin_list = data.gpio(&submit).unwrap().pins().clone();
+
+        siv.add_layer(gpio_pins_popup::<C>(submit, pin_list));
+    }
+}
+
+/// Menu with a list of the pins from the selected GPIO.
 fn gpio_pins_popup<C: Chip + 'static + serde::ser::Serialize>(
     gpio: Rc<<C::Peripherals as DefaultPeripherals>::Gpio>,
     pin_list: GpioMap<C>,
@@ -42,25 +60,11 @@ fn gpio_pins_popup<C: Chip + 'static + serde::ser::Serialize>(
     checkbox_popup::<_, _, _>(
         view,
         move |siv| on_gpio_pin_submit::<C>(siv, false, Rc::clone(&gpio)),
-        move |siv| on_gpio_pin_submit::<C>(siv, true, gpio_clone.clone()),
+        move |siv| on_gpio_pin_submit::<C>(siv, true, Rc::clone(&gpio_clone)),
     )
 }
 
-//  TODO: doc this.
-fn on_gpio_capsule_submit<C: Chip + 'static + serde::Serialize>(
-    siv: &mut cursive::Cursive,
-    submit: Rc<<<C as Chip>::Peripherals as DefaultPeripherals>::Gpio>,
-) {
-    siv.pop_layer();
-    if let Some(data) = siv.user_data::<Data<C>>() {
-        // This never panics.
-        let pin_list = data.gpio(&submit).unwrap().pins().clone();
-
-        siv.add_layer(gpio_pins_popup::<C>(submit, pin_list));
-    }
-}
-
-//  TODO: doc this.
+/// Configure a GPIO capsule based on the selected pins.
 fn on_gpio_pin_submit<C: Chip + 'static + serde::Serialize>(
     siv: &mut cursive::Cursive,
     quit: bool,
@@ -94,6 +98,8 @@ fn on_gpio_pin_submit<C: Chip + 'static + serde::Serialize>(
             });
         }
 
+        // Create a list with all the previously selected pins that 
+        // are now unselected.
         let mut unselected_pins = Vec::new();
         for (pin, pin_function) in data.gpio(&gpio).unwrap().pins() {
             if *pin_function == PinFunction::Gpio && !selected_pins.contains(pin) {
@@ -101,15 +107,17 @@ fn on_gpio_pin_submit<C: Chip + 'static + serde::Serialize>(
             }
         }
 
+        // For each previously selected pin that got unselected,
+        // update its status in the internal configurator data.
         unselected_pins.iter().for_each(|pin| {
-            data.change_pin_status(gpio.clone(), *pin, PinFunction::None);
+            data.change_pin_status(Rc::clone(&gpio), *pin, PinFunction::None);
         });
 
+        // For each selected pin, update its status in the internal
+        // configurator data.
         selected_pins.iter().for_each(|pin| {
-            data.change_pin_status(gpio.clone(), *pin, PinFunction::Gpio);
+            data.change_pin_status(Rc::clone(&gpio), *pin, PinFunction::Gpio);
         });
-
-        //panic!("{:?}", selected_pins);
 
         if selected_pins.is_empty() {
             data.platform.remove_gpio();

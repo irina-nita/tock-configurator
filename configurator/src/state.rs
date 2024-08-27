@@ -112,7 +112,8 @@ impl<C: Chip> Data<C> {
         }
     }
 
-    //  TODO: Doc this.
+    /// Change the pin status that is stored inside the configurator
+    /// inner state.
     pub fn change_pin_status(
         &mut self,
         gpio: Rc<<<C as Chip>::Peripherals as DefaultPeripherals>::Gpio>,
@@ -135,6 +136,7 @@ impl<C: Chip> Data<C> {
     }
 }
 
+/// Push a layer to the view stack.
 pub(crate) fn push_layer<
     V: cursive::view::IntoBoxedView + 'static,
     C: Chip + 'static + serde::ser::Serialize,
@@ -255,10 +257,7 @@ pub(crate) fn on_capsule_submit<C: Chip + 'static + serde::ser::Serialize>(
                 _ => None,
             };
 
-            push_layer::<_, C>(
-                siv,
-                crate::capsule::alarm::config::<C, <C as Chip>::Peripherals>(chip, choice),
-            )
+            push_layer::<_, C>(siv, crate::capsule::alarm::config::<C>(chip, choice))
         }
         config::Index::SPI => {
             let choice = match data.platform.capsule(&config::Index::SPI) {
@@ -294,10 +293,7 @@ pub(crate) fn on_capsule_submit<C: Chip + 'static + serde::ser::Serialize>(
                 _ => None,
             };
 
-            push_layer::<_, C>(
-                siv,
-                crate::capsule::flash::config::<C, <C as Chip>::Peripherals>(choice, chip),
-            )
+            push_layer::<_, C>(siv, crate::capsule::flash::config::<C>(choice, chip))
         }
         config::Index::LSM303AGR => {
             let previous_state = match data.platform.capsule(submit) {
@@ -324,15 +320,12 @@ pub(crate) fn on_capsule_submit<C: Chip + 'static + serde::ser::Serialize>(
 
             push_layer::<_, C>(siv, crate::capsule::rng::config::<C>(chip, choice))
         }
-        config::Index::GPIO => push_layer::<_, C>(
-            siv,
-            crate::capsule::gpio::GpioConfig::config(Rc::clone(&chip)),
-        ),
+        config::Index::GPIO => {
+            push_layer::<_, C>(siv, crate::capsule::gpio::GpioConfig::config(chip))
+        }
         _ => unreachable!(),
     }
 }
-
-// *********************************** GPIO *****************************************
 
 /// Give the next prompt from the GPIO capsule.
 #[allow(unused)]
@@ -365,7 +358,7 @@ pub(crate) fn on_exit_submit<C: Chip + 'static + serde::ser::Serialize>(
     }
 }
 
-/// Exit the current window and go back to the previous one.
+/// Exit the current window and go to the "save to JSON" menu.
 pub(crate) fn on_quit_submit<C: Chip + 'static + serde::ser::Serialize>(
     siv: &mut cursive::Cursive,
 ) {
@@ -373,7 +366,7 @@ pub(crate) fn on_quit_submit<C: Chip + 'static + serde::ser::Serialize>(
     siv.add_layer(menu::save_dialog::<C>())
 }
 
-/// Exit the current window and go back to the previous one.
+/// Write to the JSON file and quit the configurator.
 pub(crate) fn on_name_submit<C: Chip + 'static + serde::Serialize>(
     siv: &mut cursive::Cursive,
     name: &str,
@@ -415,8 +408,8 @@ pub(crate) fn on_count_submit_stack<C: Chip + 'static + serde::Serialize>(
             unsafe {
                 data.platform.stack_size = NonZeroUsize::new_unchecked(0x900_usize);
             }
-        } else if name.starts_with("0x") {
-            if let Ok(count) = usize::from_str_radix(&name[2..], 16) {
+        } else if let Some(number) = name.strip_prefix("0x") {
+            if let Ok(count) = usize::from_str_radix(number, 16) {
                 data.platform.update_stack_size(count);
             }
         } else if let Ok(count) = name.parse::<usize>() {

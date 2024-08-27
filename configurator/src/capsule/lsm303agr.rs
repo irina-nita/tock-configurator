@@ -7,6 +7,8 @@ use crate::state::Data;
 use crate::{menu::capsule_popup, views};
 use parse::peripherals::{Chip, DefaultPeripherals};
 
+const PERIPHERAL: &str = "I2C";
+
 /// Menu for configuring the Lsm303agr capsule.
 pub fn config<C: Chip + 'static + serde::Serialize>(
     chip: Rc<C>,
@@ -15,8 +17,10 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
     >,
 ) -> cursive::views::LinearLayout {
     match previous_state {
-        None => config_unknown(chip),
+        // If there isn't a LSM303AGR already configured, we switch to another menu.
+        None => config_none(chip),
         Some(inner) => match chip.peripherals().i2c() {
+            // If we have at least one I2C peripheral, we make a list with it.
             Ok(uart_peripherals) => {
                 capsule_popup::<C, _>(crate::views::radio_group_with_null_known(
                     Vec::from(uart_peripherals),
@@ -24,12 +28,15 @@ pub fn config<C: Chip + 'static + serde::Serialize>(
                     inner,
                 ))
             }
-            Err(_) => capsule_popup::<C, _>(crate::menu::no_support("I2C")),
+            // If we don't have any I2C peripheral, we show a popup 
+            // with an error describing this.
+            Err(_) => capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
         },
     }
 }
 
-fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
+/// Menu for configuring the LSM303AGR capsule when none was configured before.
+fn config_none<C: Chip + 'static + serde::ser::Serialize>(
     chip: Rc<C>,
 ) -> cursive::views::LinearLayout {
     match chip.peripherals().i2c() {
@@ -38,11 +45,11 @@ fn config_unknown<C: Chip + 'static + serde::ser::Serialize>(
                 on_bus_submit::<C>(siv, submit)
             }),
         ),
-        Err(_) => crate::menu::capsule_popup::<C, _>(crate::menu::no_support("I2C")),
+        Err(_) => crate::menu::capsule_popup::<C, _>(crate::menu::no_support(PERIPHERAL)),
     }
 }
 
-/// Configure a Lsm303AGR based on the submitted I2C sensors bus.
+/// After choosing an I2C, go to the Acceleration Rate choice.
 fn on_bus_submit<C: Chip + 'static + serde::ser::Serialize>(
     siv: &mut cursive::Cursive,
     submit: &Option<Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::I2c>>,
@@ -57,6 +64,7 @@ fn on_bus_submit<C: Chip + 'static + serde::ser::Serialize>(
     }
 }
 
+/// Acceleration Rate choice popup.
 fn accel_rate_popup<C: Chip + 'static + serde::ser::Serialize>(
     bus: Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::I2c>,
 ) -> cursive::views::LinearLayout {
@@ -105,6 +113,7 @@ fn accel_rate_popup<C: Chip + 'static + serde::ser::Serialize>(
     ))
 }
 
+/// After choosing an acceleration rate, go to the Acceleration Scale choice.
 fn on_accel_rate_submit<C: Chip + 'static + serde::Serialize>(
     siv: &mut cursive::Cursive,
     bus: Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::I2c>,
@@ -114,6 +123,7 @@ fn on_accel_rate_submit<C: Chip + 'static + serde::Serialize>(
     siv.add_layer(accel_scale_popup::<C>(Rc::clone(&bus), accel_rate));
 }
 
+/// Acceleration Scale choice popup.
 fn accel_scale_popup<C: Chip + 'static + serde::ser::Serialize>(
     bus: Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::I2c>,
     accel_rate: parse::capsules::lsm303agr::Lsm303AccelDataRate,
@@ -132,6 +142,7 @@ fn accel_scale_popup<C: Chip + 'static + serde::ser::Serialize>(
     ))
 }
 
+/// After choosing an acceleration scale, go to the Magnetometer Data Rate choice.
 fn on_accel_scale_submit<C: Chip + 'static + serde::Serialize>(
     siv: &mut cursive::Cursive,
     bus: Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::I2c>,
@@ -146,6 +157,7 @@ fn on_accel_scale_submit<C: Chip + 'static + serde::Serialize>(
     ));
 }
 
+/// Magnetometer Data Rate choice popup.
 fn mag_data_rate_popup<C: Chip + 'static + serde::ser::Serialize>(
     bus: Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::I2c>,
     accel_rate: parse::capsules::lsm303agr::Lsm303AccelDataRate,
@@ -192,6 +204,7 @@ fn mag_data_rate_popup<C: Chip + 'static + serde::ser::Serialize>(
     ))
 }
 
+/// After choosing an magnetometer data rate, go to the Magnetometer Range choice.
 fn on_mag_data_rate_submit<C: Chip + 'static + serde::Serialize>(
     siv: &mut cursive::Cursive,
     bus: Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::I2c>,
@@ -208,6 +221,7 @@ fn on_mag_data_rate_submit<C: Chip + 'static + serde::Serialize>(
     ));
 }
 
+/// Magnetometer Range choice popup.
 fn mag_range_popup<C: Chip + 'static + serde::ser::Serialize>(
     bus: Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::I2c>,
     accel_rate: parse::capsules::lsm303agr::Lsm303AccelDataRate,
@@ -259,6 +273,7 @@ fn mag_range_popup<C: Chip + 'static + serde::ser::Serialize>(
     ))
 }
 
+/// After choosing the parameters, configure a LSM303AGR with them.
 fn on_mag_range_submit<C: Chip + 'static + serde::Serialize>(
     siv: &mut cursive::Cursive,
     bus: Rc<<<C as parse::peripherals::Chip>::Peripherals as DefaultPeripherals>::I2c>,
