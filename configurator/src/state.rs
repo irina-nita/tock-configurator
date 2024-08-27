@@ -24,6 +24,8 @@ pub(crate) type GpioMap<C> = Vec<(
     PinFunction,
 )>;
 
+const DEFAULT_STACK_SIZE: usize = 0x900_usize;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[allow(unused)]
 pub enum PinFunction {
@@ -404,9 +406,9 @@ pub(crate) fn on_count_submit_stack<C: Chip + 'static + serde::Serialize>(
 ) {
     if let Some(data) = siv.user_data::<Data<C>>() {
         if name.is_empty() {
-            // TODO: Safety comment
+            // We provide a fixed non-zero value, so it's safe.
             unsafe {
-                data.platform.stack_size = NonZeroUsize::new_unchecked(0x900_usize);
+                data.platform.stack_size = NonZeroUsize::new_unchecked(DEFAULT_STACK_SIZE);
             }
         } else if let Some(number) = name.strip_prefix("0x") {
             if let Ok(count) = usize::from_str_radix(number, 16) {
