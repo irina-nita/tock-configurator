@@ -1,5 +1,7 @@
 // Copyright OxidOS Automotive 2024.
 
+//! Not fully supported yet.
+
 use parse::constants::PERIPHERALS;
 use parse::peripheral;
 

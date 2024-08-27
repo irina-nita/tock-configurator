@@ -15,4 +15,5 @@ serde_json = "1.0.116"
 quote = "1.0.36"
 
 common = { path = "../common" }
+proc-macro2 = "1.0.86"
 

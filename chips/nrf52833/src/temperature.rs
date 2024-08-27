@@ -2,6 +2,7 @@
 
 use parse::constants::PERIPHERALS;
 use parse::peripheral;
+use quote::quote;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub enum TemperatureType {
@@ -9,10 +10,15 @@ pub enum TemperatureType {
 }
 
 #[derive(Debug)]
-#[peripheral(serde, ident = "temperature")]
+#[peripheral(serde, ident = ".nrf52.temp")]
 pub struct Temperature(TemperatureType);
 
-impl parse::Component for Temperature {}
+impl parse::Component for Temperature {
+    fn ty(&self) -> Result<parse::proc_macro2::TokenStream, parse::Error> {
+        Ok(quote!(nrf52::temperature::Temp<'static>))
+    }
+}
+
 impl parse::Temperature for Temperature {}
 
 impl std::fmt::Display for Temperature {

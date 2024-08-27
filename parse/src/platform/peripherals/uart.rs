@@ -60,9 +60,13 @@ impl<U: Uart + 'static> crate::Component for MuxUart<U> {
         let uart_ident: proc_macro2::TokenStream =
             self.peripheral.as_ref().ident()?.parse().unwrap();
 
+        let uart_before = self.peripheral.before_usage();
         Ok(quote! {
-        components::console::UartMuxComponent::new(&#uart_ident, #baud_rate)
-            .finalize(components::uart_mux_component_static!())
+            {
+                #uart_before
+                components::console::UartMuxComponent::new(&#uart_ident, #baud_rate)
+                .finalize(components::uart_mux_component_static!())
+            }
         })
     }
 }

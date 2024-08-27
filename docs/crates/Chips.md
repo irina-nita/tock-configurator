@@ -9,7 +9,7 @@ must implement the corresponding traits from the `parse` crate.
 This approach is not yet considered scalable. The approach this should be moving towards is to have
 chip configuration `JSON` files, similar to:
 
-```json
+```js
 // nrf52833.code.json 
 {
 	"chip": {
@@ -22,7 +22,11 @@ chip configuration `JSON` files, similar to:
 }
 ```
 
-```json
+The `*.code.json` file **could** be generated from procedural macros added in the `chips/<SUPPORTED_CHIP>` crate,
+with attributes that translate in the JSON keys. This means introducing the configurator in the TockOS source code,
+as a dependency.
+
+```js
 // nrf52833.peripherals.json 
 {
     "peripherals": [
