@@ -17,5 +17,5 @@
 mod tock_main;
 mod util;
 
-pub use microbit::MicroBitChip as Nrf52833;
+pub use nrf52833::Chip as Nrf52833;
 pub use tock_main::TockMain;

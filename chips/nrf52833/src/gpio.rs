@@ -1,6 +1,6 @@
 // Copyright OxidOS Automotive 2024.
 
-use parse::{peripheral, peripherals::Gpio};
+use parse::peripheral;
 use std::rc::Rc;
 
 use parse::constants::PERIPHERALS;
@@ -64,9 +64,9 @@ pub enum GpioType {
 
 #[derive(Debug, PartialEq)]
 #[peripheral(serde, ident = "gpio")]
-pub struct MicroBitGpio {}
+pub struct Gpio {}
 
-impl Gpio for MicroBitGpio {
+impl parse::Gpio for Gpio {
     type PinId = PinIds;
 
     fn pins(&self) -> Option<std::rc::Rc<[Self::PinId]>> {
@@ -117,7 +117,7 @@ impl Gpio for MicroBitGpio {
     }
 }
 
-impl std::fmt::Display for MicroBitGpio {
+impl std::fmt::Display for Gpio {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "gpio")
     }

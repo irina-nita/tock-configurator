@@ -1,45 +1,40 @@
 // Copyright OxidOS Automotive 2024.
 
-use crate::MicroBitPeripherals;
+use crate::Peripherals;
 use common::cortex_m4::Systick;
-use parse::constants::CHIP;
-use parse::peripherals::chip::Chip;
 use parse::{Component, Ident};
 use quote::{format_ident, quote};
 use std::rc::Rc;
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
-pub struct MicroBitChip {
-    #[serde(skip)]
-    ident: String,
+pub struct Chip {
     #[serde(skip)]
     systick: Rc<Systick>,
-
-    peripherals: Rc<MicroBitPeripherals>,
+    peripherals: Rc<Peripherals>,
 }
 
-impl Default for MicroBitChip {
+impl Default for Chip {
     fn default() -> Self {
         Self {
-            ident: CHIP.to_string(),
-            peripherals: Rc::new(MicroBitPeripherals::new()),
+            peripherals: Rc::new(Peripherals::new()),
             systick: Rc::new(Systick::new()),
         }
     }
 }
 
-impl MicroBitChip {
+impl Chip {
     pub fn new() -> Self {
         Self::default()
     }
 }
-impl Ident for MicroBitChip {
-    fn ident(&self) -> Result<&str, parse::error::Error> {
-        Ok(&self.ident)
+
+impl Ident for Chip {
+    fn ident(&self) -> Result<String, parse::error::Error> {
+        Ok(parse::constants::CHIP.clone())
     }
 }
 
-impl Component for MicroBitChip {
+impl Component for Chip {
     fn ty(&self) -> Result<parse::proc_macro2::TokenStream, parse::Error> {
         Ok(quote!(
             nrf52833::chip::NRF52<
@@ -64,13 +59,27 @@ impl Component for MicroBitChip {
     }
 
     fn after_init(&self) -> Option<parse::proc_macro2::TokenStream> {
-        let ident = format_ident!("{}", self.ident);
+        let ident = format_ident!("{}", self.ident().ok()?);
         Some(quote!(CHIP = Some(#ident);))
+    }
+
+    fn before_init(&self) -> Option<parse::proc_macro2::TokenStream> {
+        let peripherals = format_ident!("{}", self.peripherals.ident().ok()?);
+
+        Some(quote! {
+            let __base_peripherals = &#peripherals.nrf52;
+            __base_peripherals.clock.low_stop();
+            __base_peripherals.clock.high_stop();
+            __base_peripherals.clock.low_start();
+            __base_peripherals.clock.high_start();
+            while !__base_peripherals.clock.low_started() {}
+            while !__base_peripherals.clock.high_started() {}
+        })
     }
 }
 
-impl Chip for MicroBitChip {
-    type Peripherals = MicroBitPeripherals;
+impl parse::Chip for Chip {
+    type Peripherals = Peripherals;
     type Systick = Systick;
 
     fn peripherals(&self) -> Rc<Self::Peripherals> {

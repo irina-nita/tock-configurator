@@ -5,12 +5,12 @@ use parse::peripheral;
 
 #[derive(Debug)]
 #[peripheral(serde, ident = "twi")]
-pub struct MicroBitTwi {}
+pub struct Twi {}
 
-impl parse::I2c for MicroBitTwi {}
-impl parse::Component for MicroBitTwi {}
+impl parse::I2c for Twi {}
+impl parse::Component for Twi {}
 
-impl std::fmt::Display for MicroBitTwi {
+impl std::fmt::Display for Twi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "twi")
     }

@@ -4,7 +4,8 @@ use proc_macro::TokenStream;
 mod component;
 mod config_fields;
 
-//  TODO: `trybuild` UI tests.
+#[cfg(test)]
+mod test;
 
 #[proc_macro_attribute]
 pub fn component(attrs: TokenStream, item: TokenStream) -> TokenStream {

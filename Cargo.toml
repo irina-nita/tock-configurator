@@ -1,7 +1,7 @@
 # Copyright OxidOS Automotive 2024.
 
 [workspace]
-members = ["chips/microbit", "chips/common", "configurator", "generator", "parse", "parse-macros"]
+members = ["chips/nrf52833", "chips/common", "configurator", "generator", "parse", "parse-macros"]
 resolver = "2"
 
 [workspace.package]

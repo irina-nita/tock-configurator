@@ -10,12 +10,12 @@ pub enum TemperatureType {
 
 #[derive(Debug)]
 #[peripheral(serde, ident = "temperature")]
-pub struct MicroBitTemperature(TemperatureType);
+pub struct Temperature(TemperatureType);
 
-impl parse::Component for MicroBitTemperature {}
-impl parse::Temperature for MicroBitTemperature {}
+impl parse::Component for Temperature {}
+impl parse::Temperature for Temperature {}
 
-impl std::fmt::Display for MicroBitTemperature {
+impl std::fmt::Display for Temperature {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "temperature")
     }

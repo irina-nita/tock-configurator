@@ -9,29 +9,23 @@ pub enum TimerType {
     Rtc,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 #[peripheral(serde, ident = ".nrf52.rtc")]
-pub struct MicroBitTimer(TimerType);
+pub struct Timer(TimerType);
 
-impl Component for MicroBitTimer {
+impl Component for Timer {
     fn ty(&self) -> Result<parse::proc_macro2::TokenStream, parse::Error> {
         Ok(quote!(nrf52::rtc::Rtc<'static>))
     }
 }
 
-//  FIXME: This should be removed in the next iteration.
-impl PartialEq for MicroBitTimer {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-}
-impl parse::Timer for MicroBitTimer {
+impl parse::Timer for Timer {
     fn frequency(&self) -> usize {
         0
     }
 }
 
-impl std::fmt::Display for MicroBitTimer {
+impl std::fmt::Display for Timer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "rtc")
     }

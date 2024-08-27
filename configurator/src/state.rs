@@ -157,14 +157,9 @@ pub(crate) fn on_chip_submit(siv: &mut cursive::Cursive, submit: &items::Support
     match submit {
         items::SupportedChip::MicroBit => {
             // Initial user data.
-            siv.set_user_data::<Data<microbit::MicroBitChip>>(Data::new(
-                microbit::MicroBitChip::new(),
-            ));
+            siv.set_user_data::<Data<nrf52833::Chip>>(Data::new(nrf52833::Chip::new()));
 
-            push_layer::<_, microbit::MicroBitChip>(
-                siv,
-                board_config_menu::<microbit::MicroBitChip>(),
-            );
+            push_layer::<_, nrf52833::Chip>(siv, board_config_menu::<nrf52833::Chip>());
         }
     };
 }
@@ -329,9 +324,10 @@ pub(crate) fn on_capsule_submit<C: Chip + 'static + serde::ser::Serialize>(
 
             push_layer::<_, C>(siv, crate::capsule::rng::config::<C>(chip, choice))
         }
-        config::Index::GPIO => {
-            push_layer::<_, C>(siv, crate::capsule::gpio::GpioConfig::config(chip.clone()))
-        }
+        config::Index::GPIO => push_layer::<_, C>(
+            siv,
+            crate::capsule::gpio::GpioConfig::config(Rc::clone(&chip)),
+        ),
         _ => unreachable!(),
     }
 }

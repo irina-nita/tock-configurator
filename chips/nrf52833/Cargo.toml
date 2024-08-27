@@ -1,7 +1,7 @@
 # Copyright OxidOS Automotive 2024.
 
 [package]
-name = "microbit"
+name = "nrf52833"
 version.workspace = true
 edition.workspace = true
 

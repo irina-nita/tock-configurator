@@ -10,12 +10,12 @@ pub enum RngType {
 
 #[derive(Debug)]
 #[peripheral(serde, ident = "rng")]
-pub struct MicroBitRng(RngType);
+pub struct Rng(RngType);
 
-impl parse::Component for MicroBitRng {}
-impl parse::Rng for MicroBitRng {}
+impl parse::Component for Rng {}
+impl parse::Rng for Rng {}
 
-impl std::fmt::Display for MicroBitRng {
+impl std::fmt::Display for Rng {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "rng")
     }

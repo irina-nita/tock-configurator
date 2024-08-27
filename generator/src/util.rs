@@ -28,7 +28,7 @@ pub fn topological_sort(
         if let Some(dependencies) = front.dependencies() {
             for dep in dependencies {
                 // Add the node to the stack if it hasn't been visited.
-                if let None | Some(false) = visited.get(dep.ident()?) {
+                if let None | Some(false) = visited.get(&dep.ident()?) {
                     stack.push(dep);
                     continue 'outer;
                 }

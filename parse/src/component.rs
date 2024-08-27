@@ -35,7 +35,7 @@ pub trait Capsule: crate::Component {
 
 /// A trait for objects that define variables represented by an **unique** identifier.
 ///
-/// Additionally, the procedural macro [`parse_macros::node`] provides an implementation
+/// Additionally, the procedural macro [`parse_macros::component`] provides an implementation
 /// of the [`Ident`] trait.
 ///
 /// # Example
@@ -48,12 +48,22 @@ pub trait Capsule: crate::Component {
 /// }
 /// ```
 pub trait Ident {
-    fn ident(&self) -> Result<&str, crate::error::Error>;
+    fn ident(&self) -> Result<String, crate::error::Error>;
 }
 
+//  TODO: The ident trait must have a static str? so that this is not to be confused?
+// This can't be object safe unless... the ident parameter is an uuid (has default),
+// and the base is a static/ implemented in the ident function?
+
 impl Ident for super::NoSupport {
-    fn ident(&self) -> Result<&str, crate::error::Error> {
+    fn ident(&self) -> Result<String, crate::error::Error> {
         Err(crate::error::Error::CodeNotProvided)
+    }
+}
+
+impl<P: crate::DefaultPeripherals> Ident for P {
+    fn ident(&self) -> Result<String, crate::error::Error> {
+        Ok(constants::PERIPHERALS.clone())
     }
 }
 
@@ -95,6 +105,13 @@ pub trait Component: Ident + AsComponent {
     /// Return code expression that must be run before the initialization
     /// of this component if it exists.
     fn before_init(&self) -> Option<proc_macro2::TokenStream> {
+        None
+    }
+
+    /// Return peripheral prelude code before using it inside a capsule.
+    ///  TODO: This should be moved (?) in a different `Peripheral` trait,
+    /// similar to `Capsule`.
+    fn before_usage(&self) -> Option<proc_macro2::TokenStream> {
         None
     }
 }

@@ -99,6 +99,13 @@ pub trait Chip: Component {
         + serde::Serialize;
     type Systick: for<'de> serde::Deserialize<'de> + serde::Serialize + 'static + Component;
 
+    /// Return chip prelude code needed before booting the platform.
+    /// If this returns Some, it should be called before setting up the platform
+    /// and entering main loop.
+    fn before_boot(&self) -> Option<proc_macro2::TokenStream> {
+        None
+    }
+
     /// Return a pointer to the chip's default peripherals.
     fn peripherals(&self) -> Rc<Self::Peripherals>;
 

@@ -10,12 +10,12 @@ pub enum FlashType {
 
 #[derive(Debug)]
 #[peripheral(serde, ident = "flash")]
-pub struct MicroBitFlash(FlashType);
+pub struct Flash(FlashType);
 
-impl parse::Component for MicroBitFlash {}
-impl parse::Flash for MicroBitFlash {}
+impl parse::Component for Flash {}
+impl parse::Flash for Flash {}
 
-impl std::fmt::Display for MicroBitFlash {
+impl std::fmt::Display for Flash {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "flash")
     }

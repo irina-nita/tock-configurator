@@ -3,7 +3,7 @@
 use darling::ast::NestedMeta;
 use darling::{util::Flag, FromMeta};
 use proc_macro::TokenStream;
-use proc_macro2::{Literal, Span};
+use proc_macro2::Literal;
 use quote::{format_ident, quote, ToTokens};
 use syn::ItemStruct;
 
@@ -33,8 +33,7 @@ fn define_struct(
     item: TokenStream,
 ) -> syn::Result<TokenStream> {
     // Get the struct definition.
-    let struct_item =
-        syn::parse::<ItemStruct>(item).map_err(|_| syn::Error::new(Span::call_site(), "AICI0!"))?;
+    let struct_item = syn::parse::<ItemStruct>(item)?;
 
     // Get the field that matches the field specified by the attribute.
     let fields = struct_item
@@ -86,61 +85,85 @@ fn define_struct(
         quote!(parse)
     };
 
+    let default_fn = _crate.to_string() + "::Uuid::new_v4";
+
     let (derive_serde, serde_skip) = serde
         .is_present()
         .then_some((
             quote!(#[derive(serde::Serialize, serde::Deserialize)]),
-            quote!(#[serde(skip)]),
+            quote!(#[serde(skip, default = #default_fn)]),
         ))
         .unzip();
 
     // Get generics and all.
     let (impl_generics, ty_generics, where_clause) = struct_generics.split_for_impl();
 
-    if peripherals.is_some() {
-        //  TODO: Implement PartialEq
-    }
-
-    let ident_init_expr = peripherals
-        .map(|p_ident| format_ident!("{}", p_ident.clone()))
-        .map(|ident| quote!(#ident.clone() + #base_ident))
-        .unwrap_or(quote!( {
-            use #_crate::FormatIdent;
-            String::from(#base_ident) + &#_crate::Uuid::new_v4().format_ident()
-        }));
+    let peripherals = peripherals.map(|p_ident| format_ident!("{}", p_ident.clone()));
 
     let arg_num_ident = Literal::usize_unsuffixed(arg_num);
 
-    let (init_expr, self_ident, struct_ast) = if tuple_struct {
-        (
-            quote! (Self (#(#field_names,)* #ident_init_expr)),
-            quote! (Ok(&self.#arg_num_ident)),
+    let (init_expr, self_ident, struct_ast) = match (tuple_struct, peripherals) {
+        (true, None) => (
+            quote! (Self (#(#field_names,)* #_crate::Uuid::new_v4())),
+            quote! {
+                use #_crate::FormatIdent;
+                Ok(String::from(#base_ident) + &self.#arg_num_ident.format_ident())
+            },
             quote! {
                 #derive_default
                 #derive_serde
                 #struct_vis struct #struct_ty #struct_generics (#(#field_types,)*
                 #serde_skip
-                String);
+                #_crate::Uuid);
             },
-        )
-    } else {
-        (
+        ),
+        (true, Some(p_ident)) => (
+            quote! (Self (#(#field_names,)*)),
+            quote! {
+                Ok(#p_ident.clone() + &String::from(#base_ident))
+            },
+            quote! {
+                #derive_default
+                #derive_serde
+                #struct_vis struct #struct_ty #struct_generics (#(#field_types,)*);
+            },
+        ),
+        (false, None) => (
             quote! {Self {
                  #(#field_names,)*
-                __ident: #ident_init_expr
+                __ident: #_crate::Uuid::new_v4()
             }
             },
-            quote!(Ok(&self.__ident)),
+            quote! {
+                use #_crate::FormatIdent;
+                Ok(String::from(#base_ident) + &self.__ident.format_ident())
+            },
             quote! {
             #derive_default
             #derive_serde
             #struct_vis struct #struct_ty #struct_generics {
                 #(#fields,)*
                 #serde_skip
-                __ident: String,
+                __ident: #_crate::Uuid,
             }
             },
-        )
+        ),
+        (false, Some(p_ident)) => (
+            quote! {Self {
+                 #(#field_names,)*
+            }
+            },
+            quote! {
+                Ok(#p_ident.clone() + &String::from(#base_ident))
+            },
+            quote! {
+            #derive_default
+            #derive_serde
+            #struct_vis struct #struct_ty #struct_generics {
+                #(#fields,)*
+            }
+            },
+        ),
     };
 
     // The final code generated with both the constructor and the `Ident` trait implementations.
@@ -152,7 +175,7 @@ fn define_struct(
         }
 
         impl #impl_generics #_crate::component::Ident for #struct_ty #ty_generics #where_clause {
-            fn ident(&self) -> Result<&str, #_crate::error::Error> {
+            fn ident(&self) -> Result<String, #_crate::error::Error> {
                 #self_ident
             }
         }
