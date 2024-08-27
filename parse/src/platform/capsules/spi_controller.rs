@@ -9,12 +9,6 @@ pub struct SpiController<S: spi::Spi> {
     pub inner: Rc<spi::MuxSpi<S>>,
 }
 
-impl<S: spi::Spi + 'static> SpiController<S> {
-    pub(crate) fn get(mux_spi: Rc<spi::MuxSpi<S>>) -> Rc<Self> {
-        Rc::new(Self::new(mux_spi))
-    }
-}
-
 impl<S: spi::Spi + 'static> Component for SpiController<S> {
     fn ty(&self) -> Result<proc_macro2::TokenStream, crate::Error> {
         Err(crate::Error::CodeNotProvided)

@@ -4,10 +4,8 @@ use std::error::Error;
 use std::rc::Rc;
 
 use crate::config::{Capsule, Configuration};
-use crate::{
-    AlarmDriver, Chip, Console, MuxAlarm, MuxSpi, MuxUart, Platform, RngCapsule, TemperatureCapsule,
-};
-use crate::{Scheduler, SpiController};
+use crate::{AlarmDriver, Console, MuxAlarm, MuxUart, RngCapsule, TemperatureCapsule};
+use crate::{Chip, Platform, Scheduler};
 
 /// The context provided for Tock's `main` file.
 ///
